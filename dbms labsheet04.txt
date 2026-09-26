@@ -1,0 +1,573 @@
+mysql> USE sql_lab;
+Database changed
+mysql> show tables;
++-------------------+
+| Tables_in_sql_lab |
++-------------------+
+| department        |
+| enrollment        |
+| student           |
++-------------------+
+3 rows in set (0.02 sec)
+
+mysql> SELECT * FROM department;
++--------+------------------------+
+| DeptID | DeptName               |
++--------+------------------------+
+|     10 | Computer Science       |
+|     20 | Information Technology |
+|     30 | Pharmacy               |
+|     40 | Management             |
++--------+------------------------+
+4 rows in set (0.02 sec)
+
+mysql> SELECT * FROM enrollment;
++--------------+-----------+-------------------+
+| EnrollmentID | StudentID | CourseName        |
++--------------+-----------+-------------------+
+|            1 |       101 | DBMS              |
+|            2 |       102 | Operating Systems |
+|            3 |       103 | Pharmacology      |
+|            4 |       104 | Python            |
++--------------+-----------+-------------------+
+4 rows in set (0.01 sec)
+
+mysql> SELECT * FROM student;
++-----------+-------------+-------------------+------+--------+-------------+
+| StudentID | Name        | Email             | Age  | DeptID | JoiningDate |
++-----------+-------------+-------------------+------+--------+-------------+
+|       101 | Amit Sharma | amit@example.com  |   20 |     10 | 2026-07-01  |
+|       102 | Priya Singh | priya@example.com |   21 |     20 | 2026-07-03  |
+|       103 | Rahul Verma | rahul@example.com |   22 |     30 | 2026-07-05  |
+|       104 | Neha Gupta  | neha@example.com  |   20 |     10 | 2026-07-08  |
+|       105 | Arjun Mehta | arjun@example.com |   23 |     40 | 2026-07-10  |
++-----------+-------------+-------------------+------+--------+-------------+
+5 rows in set (0.01 sec)
+
+mysql> CREATE TABLE Department2 (
+    -> DeptID INT PRIMARY KEY,
+    -> DeptName VARCHAR(50) NOT NULL
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO Department2 VALUES(50,NULL);
+ERROR 1048 (23000): Column 'DeptName' cannot be null
+mysql> INSERT INTO Student (StudentID, Email, Age, DeptID) VALUES
+    -> (106,'riya@example.com',21,20);
+ERROR 1364 (HY000): Field 'Name' doesn't have a default value
+mysql> ALTER TABLE Student
+    -> ADD CONSTRAINT uq_student_email UNIQUE (Email);
+Query OK, 0 rows affected (0.09 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Student
+    -> VALUES (106,'Riya Das','amit@example.com',21,20,'2026-08-01'); -- Error: Duplicate entry 'amit@example.com' for key 'uq_student_email'.
+ERROR 1062 (23000): Duplicate entry 'amit@example.com' for key 'student.uq_student_email'
+mysql> CREATE TABLE Library (
+    -> BookID INT UNIQUE,
+    -> Title VARCHAR(150) NOT NULL
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO Library VALUES
+    -> (1,'Database Systems'),
+    -> (2,'Operating Systems'),
+    -> (3,'Computer Networks'),
+    -> (4,'Python Programming'),
+    -> (5,'Data Mining');^C
+mysql> CREATE TABLE Library (
+    -> BookID INT UNIQUE,
+    -> Title VARCHAR(150) NOT NULL
+    -> );
+ERROR 1050 (42S01): Table 'library' already exists
+mysql> INSERT INTO Library VALUES
+    -> (1,'Database Systems'),
+    -> (2,'Operating Systems'),
+    -> (3,'Computer Networks'),
+    -> (4,'Python Programming'),
+    -> (5,'Data Mining');
+Query OK, 5 rows affected (0.01 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> ALTER TABLE Student
+    -> ADD CONSTRAINT chk_student_age CHECK (Age > 18);
+Query OK, 5 rows affected (0.06 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Student
+    -> VALUES (106,'Riya Das','riya@example.com',17,20,'2026-08-01');
+ERROR 3819 (HY000): Check constraint 'chk_student_age' is violated.
+mysql> CREATE TABLE Course (
+    -> CourseID INT PRIMARY KEY,
+    -> CourseName VARCHAR(100),
+    -> Credits INT CHECK (Credits BETWEEN 1 AND 6)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> INSERT INTO Course VALUES (1,'DBMS',8);
+ERROR 3819 (HY000): Check constraint 'course_chk_1' is violated.
+mysql> ALTER TABLE Student
+    -> ADD COLUMN JoiningDate2 DATE DEFAULT (CURRENT_DATE);
+Query OK, 5 rows affected (0.06 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Student (StudentID,Name,Email,Age,DeptID)
+    -> VALUES (106,'Riya Das','riya@example.com',21,20);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> SELECT * FROM student;
++-----------+-------------+-------------------+------+--------+-------------+--------------+
+| StudentID | Name        | Email             | Age  | DeptID | JoiningDate | JoiningDate2 |
++-----------+-------------+-------------------+------+--------+-------------+--------------+
+|       101 | Amit Sharma | amit@example.com  |   20 |     10 | 2026-07-01  | 2026-09-26   |
+|       102 | Priya Singh | priya@example.com |   21 |     20 | 2026-07-03  | 2026-09-26   |
+|       103 | Rahul Verma | rahul@example.com |   22 |     30 | 2026-07-05  | 2026-09-26   |
+|       104 | Neha Gupta  | neha@example.com  |   20 |     10 | 2026-07-08  | 2026-09-26   |
+|       105 | Arjun Mehta | arjun@example.com |   23 |     40 | 2026-07-10  | 2026-09-26   |
+|       106 | Riya Das    | riya@example.com  |   21 |     20 | NULL        | 2026-09-26   |
++-----------+-------------+-------------------+------+--------+-------------+--------------+
+6 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Faculty (
+    -> FacultyID INT PRIMARY KEY,
+    -> FacultyName VARCHAR(100) NOT NULL,
+    -> Designation VARCHAR(50) DEFAULT 'Lecturer'
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO Faculty (FacultyID, FacultyName)
+    -> VALUES (1,'Dr. Meera Sharma');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> SELECT * FROM Faculty;
++-----------+------------------+-------------+
+| FacultyID | FacultyName      | Designation |
++-----------+------------------+-------------+
+|         1 | Dr. Meera Sharma | Lecturer    |
++-----------+------------------+-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM employees;
+ERROR 1146 (42S02): Table 'sql_lab.employees' doesn't exist
+mysql> CREATE TABLE employees (
+    -> emp_id INT PRIMARY KEY,
+    -> name VARCHAR(80),
+    -> department VARCHAR(50),
+    -> salary DECIMAL(10,2),
+    -> hire_date DATE
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO employees VALUES (101,'John Smith','IT',55000,'2024-01-15');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> INSERT INTO employees VALUES
+    -> (102,'Sarah Johnson','HR',48000,'2024-02-10'),
+    -> (103,'Mike Davis','Finance',52000,'2024-01-20'),
+    -> (104,'Lisa Wilson','Marketing',45000,'2024-03-01');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO employees (emp_id,name,department) VALUES (107,'David Clark','Sales');INSERT INTO employees (emp_id,name,department) VALUES (107,'David Clark','Sales');
+Query OK, 1 row affected (0.01 sec)
+
+ERROR 1062 (23000): Duplicate entry '107' for key 'employees.PRIMARY'
+mysql> INSERT INTO employees (emp_id,name,department) VALUES (107,'David Clark','Sales');
+ERROR 1062 (23000): Duplicate entry '107' for key 'employees.PRIMARY'
+mysql> SELECT * FROM employees;
++--------+---------------+------------+----------+------------+
+| emp_id | name          | department | salary   | hire_date  |
++--------+---------------+------------+----------+------------+
+|    101 | John Smith    | IT         | 55000.00 | 2024-01-15 |
+|    102 | Sarah Johnson | HR         | 48000.00 | 2024-02-10 |
+|    103 | Mike Davis    | Finance    | 52000.00 | 2024-01-20 |
+|    104 | Lisa Wilson   | Marketing  | 45000.00 | 2024-03-01 |
+|    107 | David Clark   | Sales      |     NULL | NULL       |
++--------+---------------+------------+----------+------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT name,salary FROM employees;
++---------------+----------+
+| name          | salary   |
++---------------+----------+
+| John Smith    | 55000.00 |
+| Sarah Johnson | 48000.00 |
+| Mike Davis    | 52000.00 |
+| Lisa Wilson   | 45000.00 |
+| David Clark   |     NULL |
++---------------+----------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT *FROM employees
+    -> WHERE department="IT";
++--------+------------+------------+----------+------------+
+| emp_id | name       | department | salary   | hire_date  |
++--------+------------+------------+----------+------------+
+|    101 | John Smith | IT         | 55000.00 | 2024-01-15 |
++--------+------------+------------+----------+------------+
+1 row in set (0.01 sec)
+
+mysql> SELECT * FROM employees
+    -> WHERE salary>5000;
++--------+---------------+------------+----------+------------+
+| emp_id | name          | department | salary   | hire_date  |
++--------+---------------+------------+----------+------------+
+|    101 | John Smith    | IT         | 55000.00 | 2024-01-15 |
+|    102 | Sarah Johnson | HR         | 48000.00 | 2024-02-10 |
+|    103 | Mike Davis    | Finance    | 52000.00 | 2024-01-20 |
+|    104 | Lisa Wilson   | Marketing  | 45000.00 | 2024-03-01 |
++--------+---------------+------------+----------+------------+
+4 rows in set (0.01 sec)
+
+mysql> SELECT * FROM employees
+    -> WHERE hire_date BETWEEN '2024-01-01'AND '2024-01-31';
++--------+------------+------------+----------+------------+
+| emp_id | name       | department | salary   | hire_date  |
++--------+------------+------------+----------+------------+
+|    101 | John Smith | IT         | 55000.00 | 2024-01-15 |
+|    103 | Mike Davis | Finance    | 52000.00 | 2024-01-20 |
++--------+------------+------------+----------+------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT DISTINCT department FROM employees;
++------------+
+| department |
++------------+
+| IT         |
+| HR         |
+| Finance    |
+| Marketing  |
+| Sales      |
++------------+
+5 rows in set (0.01 sec)
+
+mysql> SELECT COUNT(*) AS total_employees FROM employees;
++-----------------+
+| total_employees |
++-----------------+
+|               5 |
++-----------------+
+1 row in set (0.01 sec)
+
+mysql> SELECT MAX(salary) AS Maximum_salary,MIN(salary) AS Minimum_salary,AVG(salary) AS average_salary;
+ERROR 1054 (42S22): Unknown column 'salary' in 'field list'
+mysql> SELECT MAX(salary) AS Maximum_salary,MIN(salary) AS Minimum_salary,AVG(salary) AS average_salary FROM employees;
++----------------+----------------+----------------+
+| Maximum_salary | Minimum_salary | average_salary |
++----------------+----------------+----------------+
+|       55000.00 |       45000.00 |   50000.000000 |
++----------------+----------------+----------------+
+1 row in set (0.01 sec)
+
+mysql> UPDATE employees
+    -> SET salary=58000 WHERE name='John smith';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE employeea
+    -> s
+    -> ^C
+mysql> UPDATE employees
+    -> SET salary=salary*1.5 WHERE department="HR";
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE employees
+    -> SET salary=47000,hire_date='2024-03-05' WHERE name='Lisa';
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql> UPDATE employees
+    -> SET department='operation' WHERE salary > 50000;
+Query OK, 3 rows affected (0.01 sec)
+Rows matched: 3  Changed: 3  Warnings: 0
+
+mysql> UPDATE employees
+    -> SET salary=salary+200 WHERE department='finance';
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql> UPDATE employees
+    -> SET department='Senior Staff' WHERE hire_date<'2020-02-01';
+Query OK, 0 rows affected (0.01 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql> SHOW TABLES;
++-------------------+
+| Tables_in_sql_lab |
++-------------------+
+| course            |
+| department        |
+| department2       |
+| employees         |
+| enrollment        |
+| faculty           |
+| library           |
+| student           |
++-------------------+
+8 rows in set (0.01 sec)
+
+mysql> -- Create products table
+mysql> CREATE TABLE products (
+    ->     product_id INT PRIMARY KEY,
+    ->     product_name VARCHAR(50),
+    ->     category VARCHAR(50),
+    ->     price DECIMAL(10,2),
+    ->     stock_quantity INT
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql>
+mysql> -- Insert data
+mysql> INSERT INTO products
+    -> (product_id, product_name, category, price, stock_quantity)
+    -> VALUES
+    -> (1, 'Laptop', 'Electronics', 999.99, 5),
+    -> (2, 'Mouse', 'Electronics', 25.50, 0),
+    -> (3, 'Desk Chair', 'Furniture', 150.00, 3),
+    -> (4, 'Monitor', 'Electronics', 1200.00, 2),
+    -> (5, 'Keyboard', 'Electronics', 75.00, 0),
+    -> (6, 'Coffee Mug', 'Office', 12.99, 10),
+    -> (7, 'Notebook', 'Office', 5.99, 8),
+    -> (8, 'Smartphone', 'Electronics', 40.00, 40);
+Query OK, 8 rows affected (0.01 sec)
+Records: 8  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> -- Display the table
+mysql> SELECT * FROM products;
++------------+--------------+-------------+---------+----------------+
+| product_id | product_name | category    | price   | stock_quantity |
++------------+--------------+-------------+---------+----------------+
+|          1 | Laptop       | Electronics |  999.99 |              5 |
+|          2 | Mouse        | Electronics |   25.50 |              0 |
+|          3 | Desk Chair   | Furniture   |  150.00 |              3 |
+|          4 | Monitor      | Electronics | 1200.00 |              2 |
+|          5 | Keyboard     | Electronics |   75.00 |              0 |
+|          6 | Coffee Mug   | Office      |   12.99 |             10 |
+|          7 | Notebook     | Office      |    5.99 |              8 |
+|          8 | Smartphone   | Electronics |   40.00 |             40 |
++------------+--------------+-------------+---------+----------------+
+8 rows in set (0.00 sec)
+
+mysql> DELETE FROM products WHERE stock_quantity=0;
+Query OK, 2 rows affected (0.01 sec)
+
+mysql> DELETE FROM products WHERE category = 'Electronics' AND price > 1000;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> DELETE FROM products WHERE product_name = 'Desk Chair';
+Query OK, 1 row affected (0.01 sec)
+
+mysql> DELETE FROM products WHERE price < 100;
+Query OK, 3 rows affected (0.01 sec)
+
+mysql> SELECT * FROM products;
++------------+--------------+-------------+--------+----------------+
+| product_id | product_name | category    | price  | stock_quantity |
++------------+--------------+-------------+--------+----------------+
+|          1 | Laptop       | Electronics | 999.99 |              5 |
++------------+--------------+-------------+--------+----------------+
+1 row in set (0.00 sec)
+ysql> select * from student;
++-----------+-------------+-------------------+------+--------+-------------+--------------+
+| StudentID | Name        | Email             | Age  | DeptID | JoiningDate | JoiningDate2 |
++-----------+-------------+-------------------+------+--------+-------------+--------------+
+|       101 | Amit Sharma | amit@example.com  |   20 |     10 | 2026-07-01  | 2026-09-26   |
+|       102 | Priya Singh | priya@example.com |   21 |     20 | 2026-07-03  | 2026-09-26   |
+|       103 | Rahul Verma | rahul@example.com |   22 |     30 | 2026-07-05  | 2026-09-26   |
+|       104 | Neha Gupta  | neha@example.com  |   20 |     10 | 2026-07-08  | 2026-09-26   |
+|       105 | Arjun Mehta | arjun@example.com |   23 |     40 | 2026-07-10  | 2026-09-26   |
+|       106 | Riya Das    | riya@example.com  |   21 |     20 | NULL        | 2026-09-26   |
++-----------+-------------+-------------------+------+--------+-------------+--------------+
+6 rows in set (0.00 sec)
+
+mysql> CREATE TABLE students (
+    ->     student_id INT PRIMARY KEY,
+    ->     name VARCHAR(50),
+    ->     subject VARCHAR(50),
+    ->     marks INT,
+    ->     city VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql>
+mysql> INSERT INTO students (student_id, name, subject, marks, city) VALUES
+    -> (1, 'Alice Brown', 'Computer Science', 85, 'Mumbai'),
+    -> (2, 'Bob Wilson', 'Mathematics', 92, 'Delhi'),
+    -> (3, 'Carol Davis', 'Computer Science', 78, 'Mumbai'),
+    -> (4, 'David Miller', 'Physics', 88, 'Chennai'),
+    -> (5, 'Eva Garcia', 'Mathematics', 95, 'Delhi'),
+    -> (6, 'Frank Johnson', 'Computer Science', 82, 'Bangalore'),
+    -> (7, 'Grace Lee', 'Physics', 90, 'Mumbai'),
+    -> (8, 'Henry Smith', 'Mathematics', 76, 'Chennai'),
+    -> (9, 'Ivy Chen', 'Computer Science', 89, 'Delhi'),
+    -> (10, 'meni ten', ' Science', 88, 'Haridwar');
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM students;
++------------+---------------+------------------+-------+-----------+
+| student_id | name          | subject          | marks | city      |
++------------+---------------+------------------+-------+-----------+
+|          1 | Alice Brown   | Computer Science |    85 | Mumbai    |
+|          2 | Bob Wilson    | Mathematics      |    92 | Delhi     |
+|          3 | Carol Davis   | Computer Science |    78 | Mumbai    |
+|          4 | David Miller  | Physics          |    88 | Chennai   |
+|          5 | Eva Garcia    | Mathematics      |    95 | Delhi     |
+|          6 | Frank Johnson | Computer Science |    82 | Bangalore |
+|          7 | Grace Lee     | Physics          |    90 | Mumbai    |
+|          8 | Henry Smith   | Mathematics      |    76 | Chennai   |
+|          9 | Ivy Chen      | Computer Science |    89 | Delhi     |
+|         10 | meni ten      |  Science         |    88 | Haridwar  |
++------------+---------------+------------------+-------+-----------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT * FROM students ORDER BY marks DESC;
++------------+---------------+------------------+-------+-----------+
+| student_id | name          | subject          | marks | city      |
++------------+---------------+------------------+-------+-----------+
+|          5 | Eva Garcia    | Mathematics      |    95 | Delhi     |
+|          2 | Bob Wilson    | Mathematics      |    92 | Delhi     |
+|          7 | Grace Lee     | Physics          |    90 | Mumbai    |
+|          9 | Ivy Chen      | Computer Science |    89 | Delhi     |
+|          4 | David Miller  | Physics          |    88 | Chennai   |
+|         10 | meni ten      |  Science         |    88 | Haridwar  |
+|          1 | Alice Brown   | Computer Science |    85 | Mumbai    |
+|          6 | Frank Johnson | Computer Science |    82 | Bangalore |
+|          3 | Carol Davis   | Computer Science |    78 | Mumbai    |
+|          8 | Henry Smith   | Mathematics      |    76 | Chennai   |
++------------+---------------+------------------+-------+-----------+
+10 rows in set (0.00 sec)
+mysql> SELECT * FROM students ORDER BY marks DESC LIMIT 5;
++------------+--------------+------------------+-------+---------+
+| student_id | name         | subject          | marks | city    |
++------------+--------------+------------------+-------+---------+
+|          5 | Eva Garcia   | Mathematics      |    95 | Delhi   |
+|          2 | Bob Wilson   | Mathematics      |    92 | Delhi   |
+|          7 | Grace Lee    | Physics          |    90 | Mumbai  |
+|          9 | Ivy Chen     | Computer Science |    89 | Delhi   |
+|          4 | David Miller | Physics          |    88 | Chennai |
++------------+--------------+------------------+-------+---------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT * FROM students WHERE course="computer science" ORDER BY student_name ASC;
+ERROR 1054 (42S22): Unknown column 'course' in 'where clause'
+mysql> SELECT * FROM students WHERE course="computer science" ORDER BY name ASC;
+ERROR 1054 (42S22): Unknown column 'course' in 'where clause'
+mysql> SELECT * FROM students WHERE subject="computer science" ORDER BY name ASC;
++------------+---------------+------------------+-------+-----------+
+| student_id | name          | subject          | marks | city      |
++------------+---------------+------------------+-------+-----------+
+|          1 | Alice Brown   | Computer Science |    85 | Mumbai    |
+|          3 | Carol Davis   | Computer Science |    78 | Mumbai    |
+|          6 | Frank Johnson | Computer Science |    82 | Bangalore |
+|          9 | Ivy Chen      | Computer Science |    89 | Delhi     |
++------------+---------------+------------------+-------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM students ORDER BY marks ASC LIMIT 3;
++------------+---------------+------------------+-------+-----------+
+| student_id | name          | subject          | marks | city      |
++------------+---------------+------------------+-------+-----------+
+|          8 | Henry Smith   | Mathematics      |    76 | Chennai   |
+|          3 | Carol Davis   | Computer Science |    78 | Mumbai    |
+|          6 | Frank Johnson | Computer Science |    82 | Bangalore |
++------------+---------------+------------------+-------+-----------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT * FROM students WHERE marks BETWEEN 80 AND 90;
++------------+---------------+------------------+-------+-----------+
+| student_id | name          | subject          | marks | city      |
++------------+---------------+------------------+-------+-----------+
+|          1 | Alice Brown   | Computer Science |    85 | Mumbai    |
+|          4 | David Miller  | Physics          |    88 | Chennai   |
+|          6 | Frank Johnson | Computer Science |    82 | Bangalore |
+|          7 | Grace Lee     | Physics          |    90 | Mumbai    |
+|          9 | Ivy Chen      | Computer Science |    89 | Delhi     |
+|         10 | meni ten      |  Science         |    88 | Haridwar  |
++------------+---------------+------------------+-------+-----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM students WHERE name LIKE'A%';
++------------+-------------+------------------+-------+--------+
+| student_id | name        | subject          | marks | city   |
++------------+-------------+------------------+-------+--------+
+|          1 | Alice Brown | Computer Science |    85 | Mumbai |
++------------+-------------+------------------+-------+--------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM students WHERE city IN ('Mumbai','Delhi');
++------------+-------------+------------------+-------+--------+
+| student_id | name        | subject          | marks | city   |
++------------+-------------+------------------+-------+--------+
+|          1 | Alice Brown | Computer Science |    85 | Mumbai |
+|          2 | Bob Wilson  | Mathematics      |    92 | Delhi  |
+|          3 | Carol Davis | Computer Science |    78 | Mumbai |
+|          5 | Eva Garcia  | Mathematics      |    95 | Delhi  |
+|          7 | Grace Lee   | Physics          |    90 | Mumbai |
+|          9 | Ivy Chen    | Computer Science |    89 | Delhi  |
++------------+-------------+------------------+-------+--------+
+6 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Books (
+    -> book_id INT PRIMARY KEY,
+    -> title VARCHAR(255) NOT NULL,
+    -> author VARCHAR(255),
+    -> isbn VARCHAR(13) UNIQUE,
+    -> genre VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE TABLE Members (
+    -> member_id INT PRIMARY KEY,
+    -> name VARCHAR(255) NOT NULL,
+    -> email VARCHAR(255) UNIQUE,
+    -> phone_number VARCHAR(20)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> CREATE TABLE Loans (
+    -> loan_id INT PRIMARY KEY,
+    -> book_id INT,
+    -> member_id INT,
+    -> loan_date DATE,
+    -> return_date DATE NULL,
+    -> FOREIGN KEY (book_id) REFERENCES Books(book_id),
+    -> FOREIGN KEY (member_id) REFERENCES Members(member_id)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> INSERT INTO Books VALUES
+    -> (1,'Database System Concepts','Korth','9780073523323','Database'),
+    -> (2,'Operating System Concepts','Silberschatz','9781119456339','OS'),
+    -> (3,'Python Crash Course','Eric Matthes','9781718502703','Programming');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Members VALUES
+    -> (101,'Amit Sharma','amit.lib@example.com','9876500001'),
+    -> (102,'Priya Singh','priya.lib@example.com','9876500002'),
+    -> (103,'Rahul Verma','rahul.lib@example.com','9876500003');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Loans VALUES
+    -> (1,1,101,'2026-09-01',NULL),
+    -> (2,2,102,'2026-09-02','2026-09-06'),
+    -> (3,3,103,'2026-09-04',NULL);
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> SELECT l.loan_id, b.title, m.name, l.loan_date, l.return_date
+    -> FROM Loans l
+    -> INNER JOIN Books b ON l.book_id = b.book_id
+    -> INNER JOIN Members m ON l.member_id = m.member_id;
++---------+---------------------------+-------------+------------+-------------+
+| loan_id | title                     | name        | loan_date  | return_date |
++---------+---------------------------+-------------+------------+-------------+
+|       1 | Database System Concepts  | Amit Sharma | 2026-09-01 | NULL        |
+|       2 | Operating System Concepts | Priya Singh | 2026-09-02 | 2026-09-06  |
+|       3 | Python Crash Course       | Rahul Verma | 2026-09-04 | NULL        |
++---------+---------------------------+-------------+------------+-------------+
+3 rows in set (0.00 sec)
