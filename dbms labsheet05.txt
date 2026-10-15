@@ -1,0 +1,826 @@
+ SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| collegedb          |
+| information_schema |
+| lab                |
+| lab1               |
+| lab4               |
+| mysql              |
+| performance_schema |
+| practice_sql       |
+| sql_lab            |
+| sys                |
++--------------------+
+10 rows in set (0.08 sec)
+
+mysql> CREATE DATABASE collegejoindb;
+Query OK, 1 row affected (0.02 sec)
+
+mysql> USE collegejoindb;
+Database changed
+mysql>  CREATE TABLE Departments ( -> DeptID INT PRIMARY KEY, -> DeptName VARCHAR(50), -> Location VARCHAR(50) -> );
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '-> DeptID INT PRIMARY KEY, -> DeptName VARCHAR(50), -> Location VARCHAR(50) -> )' at line 1
+mysql>  CREATE TABLE Departments (  DeptID INT PRIMARY KEY,  DeptName VARCHAR(50),  Location VARCHAR(50)  );
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> CREATE TABLE employees(EmpID INT PRIMARY KEY, EmpName VARCHAR(50), DeptID INT, Salary DECIMAL(10,2), City VARCHAR(50));
+Query OK, 0 rows affected (0.03 sec)
+
+mysql>  CREATE TABLE SalaryGrades ( Grade CHAR(2) PRIMARY KEY, MinSalary DECIMAL(10,2), MaxSalary DECIMAL(10,2) );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql>  INSERT INTO Departments VALUES
+    ->  (10,'Computer Science','Block A'),
+    ->  (20,'Pharmacy','Block B'),
+    ->  (30,'Management','Block C'),
+    ->  (40,'Civil Engineering','Block D');
+Query OK, 4 rows affected (0.02 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql>  INSERT INTO Employees VALUES
+    ->  (101,'Aarav',10,65000,'Delhi'),
+    ->  (102,'Priya',20,72000,'Mumbai'),
+    ->  (103,'Rahul',10,48000,'Delhi'),
+    ->  (104,'Sneha',30,91000,'Pune'),
+    ->  (105,'Vikram',20,55000,'Jaipur'),
+    ->  (106,'Neha',50,80000,'Bengaluru'),
+    ->  (107,'Kabir',30,43000,'Pune');
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql>  INSERT INTO SalaryGrades VALUES
+    ->  ('G1',0,49999),
+    ->
+    ->  ('G1',0,49999),^C
+mysql> INSERT INTO SalaryGrades VALUES
+    ->  ('G1',0,49999),
+    ->  ('G2',50000,69999),
+    ->  ('G3',70000,89999),
+    ->  ('G4',90000,120000);
+Query OK, 4 rows affected (0.01 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> SHOW TABLES;
++-------------------------+
+| Tables_in_collegejoindb |
++-------------------------+
+| departments             |
+| employees               |
+| salarygrades            |
++-------------------------+
+3 rows in set (0.02 sec)
+
+mysql> SELECT * FROM department;
+ERROR 1146 (42S02): Table 'collegejoindb.department' doesn't exist
+mysql> SELECT * FROM departments;
++--------+-------------------+----------+
+| DeptID | DeptName          | Location |
++--------+-------------------+----------+
+|     10 | Computer Science  | Block A  |
+|     20 | Pharmacy          | Block B  |
+|     30 | Management        | Block C  |
+|     40 | Civil Engineering | Block D  |
++--------+-------------------+----------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employees;
++-------+---------+--------+----------+-----------+
+| EmpID | EmpName | DeptID | Salary   | City      |
++-------+---------+--------+----------+-----------+
+|   101 | Aarav   |     10 | 65000.00 | Delhi     |
+|   102 | Priya   |     20 | 72000.00 | Mumbai    |
+|   103 | Rahul   |     10 | 48000.00 | Delhi     |
+|   104 | Sneha   |     30 | 91000.00 | Pune      |
+|   105 | Vikram  |     20 | 55000.00 | Jaipur    |
+|   106 | Neha    |     50 | 80000.00 | Bengaluru |
+|   107 | Kabir   |     30 | 43000.00 | Pune      |
++-------+---------+--------+----------+-----------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT * FROM salarygrades;
++-------+-----------+-----------+
+| Grade | MinSalary | MaxSalary |
++-------+-----------+-----------+
+| G1    |      0.00 |  49999.00 |
+| G2    |  50000.00 |  69999.00 |
+| G3    |  70000.00 |  89999.00 |
+| G4    |  90000.00 | 120000.00 |
++-------+-----------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName,d.DeptName,d.City
+    -> FROM employees e
+    -> INNER JOIN department d
+    -> ON e.DeptID=d.DeptID^C
+mysql> SELECT e.EmpName,d.DeptName,d.Location
+    -> FROM employees e
+    -> INNER JOIN department d
+    -> ON e.DeptID=d.DeptID;
+ERROR 1146 (42S02): Table 'collegejoindb.department' doesn't exist
+mysql> SELECT e.EmpName,d.DeptName,d.Location
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID;
++---------+------------------+----------+
+| EmpName | DeptName         | Location |
++---------+------------------+----------+
+| Aarav   | Computer Science | Block A  |
+| Priya   | Pharmacy         | Block B  |
+| Rahul   | Computer Science | Block A  |
+| Sneha   | Management       | Block C  |
+| Vikram  | Pharmacy         | Block B  |
+| Kabir   | Management       | Block C  |
++---------+------------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName,e.EmpID,d.DeptName
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID;
++---------+-------+------------------+
+| EmpName | EmpID | DeptName         |
++---------+-------+------------------+
+| Aarav   |   101 | Computer Science |
+| Priya   |   102 | Pharmacy         |
+| Rahul   |   103 | Computer Science |
+| Sneha   |   104 | Management       |
+| Vikram  |   105 | Pharmacy         |
+| Kabir   |   107 | Management       |
++---------+-------+------------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName,e.EmpID,d.DeptName,d.DeptID
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID;
++---------+-------+------------------+--------+
+| EmpName | EmpID | DeptName         | DeptID |
++---------+-------+------------------+--------+
+| Aarav   |   101 | Computer Science |     10 |
+| Priya   |   102 | Pharmacy         |     20 |
+| Rahul   |   103 | Computer Science |     10 |
+| Sneha   |   104 | Management       |     30 |
+| Vikram  |   105 | Pharmacy         |     20 |
+| Kabir   |   107 | Management       |     30 |
++---------+-------+------------------+--------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName,d.DeptName
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID
+    -> WHERE d.DeptName='Pharmacy';
++---------+----------+
+| EmpName | DeptName |
++---------+----------+
+| Priya   | Pharmacy |
+| Vikram  | Pharmacy |
++---------+----------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName,d.DeptName,e.Salary
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID
+    -> WHERE e.Salary > 60000;
++---------+------------------+----------+
+| EmpName | DeptName         | Salary   |
++---------+------------------+----------+
+| Aarav   | Computer Science | 65000.00 |
+| Priya   | Pharmacy         | 72000.00 |
+| Sneha   | Management       | 91000.00 |
++---------+------------------+----------+
+3 rows in set (0.01 sec)
+
+mysql> SELCT e.EmpName.d.DeptName
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELCT e.EmpName.d.DeptName
+FROM employees e
+INNER JOIN departments d
+ON e.DeptID' at line 1
+mysql> SELECT e.EmpName.d.DeptName
+    -> FROM employees e
+    -> INNER JOIN departments d
+    -> ON e.DeptID=d.DeptID;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '.DeptName
+FROM employees e
+INNER JOIN departments d
+ON e.DeptID=d.DeptID' at line 1
+mysql> SELECT e.EmpName, d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID;
++---------+------------------+
+| EmpName | DeptName         |
++---------+------------------+
+| Aarav   | Computer Science |
+| Priya   | Pharmacy         |
+| Rahul   | Computer Science |
+| Sneha   | Management       |
+| Vikram  | Pharmacy         |
+| Kabir   | Management       |
++---------+------------------+
+6 rows in set (0.00 sec)
+mysql> SELECT e.EmpName, e.City, d.DeptName, d.Location
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID;
++---------+--------+------------------+----------+
+| EmpName | City   | DeptName         | Location |
++---------+--------+------------------+----------+
+| Aarav   | Delhi  | Computer Science | Block A  |
+| Priya   | Mumbai | Pharmacy         | Block B  |
+| Rahul   | Delhi  | Computer Science | Block A  |
+| Sneha   | Pune   | Management       | Block C  |
+| Vikram  | Jaipur | Pharmacy         | Block B  |
+| Kabir   | Pune   | Management       | Block C  |
++---------+--------+------------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> WHERE d.DeptName = 'Computer Science';
++---------+------------------+
+| EmpName | DeptName         |
++---------+------------------+
+| Aarav   | Computer Science |
+| Rahul   | Computer Science |
++---------+------------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.Salary, s.Grade, s.MinSalary
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary > s.MinSalary;
++---------+----------+-------+-----------+
+| EmpName | Salary   | Grade | MinSalary |
++---------+----------+-------+-----------+
+| Aarav   | 65000.00 | G2    |  50000.00 |
+| Aarav   | 65000.00 | G1    |      0.00 |
+| Priya   | 72000.00 | G3    |  70000.00 |
+| Priya   | 72000.00 | G2    |  50000.00 |
+| Priya   | 72000.00 | G1    |      0.00 |
+| Rahul   | 48000.00 | G1    |      0.00 |
+| Sneha   | 91000.00 | G4    |  90000.00 |
+| Sneha   | 91000.00 | G3    |  70000.00 |
+| Sneha   | 91000.00 | G2    |  50000.00 |
+| Sneha   | 91000.00 | G1    |      0.00 |
+| Vikram  | 55000.00 | G2    |  50000.00 |
+| Vikram  | 55000.00 | G1    |      0.00 |
+| Neha    | 80000.00 | G3    |  70000.00 |
+| Neha    | 80000.00 | G2    |  50000.00 |
+| Neha    | 80000.00 | G1    |      0.00 |
+| Kabir   | 43000.00 | G1    |      0.00 |
++---------+----------+-------+-----------+
+16 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrade s
+    -> ON e.Salary >= s.MinSalary
+    -> AND e.Salary <= s.MaxSalary;
+ERROR 1146 (42S02): Table 'collegejoindb.salarygrade' doesn't exist
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> Join SalaryGrades s
+    -> ON e.SalaryGrades s
+    -> ON e.Salary >= s.MinSalary
+    -> AND e.Salary <= s.MaxSalary;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 's
+ON e.Salary >= s.MinSalary
+AND e.Salary <= s.MaxSalary' at line 4
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary >= s.MinSalary
+    -> AND e.Salary <= s.MaxSalary;
++---------+----------+-------+
+| EmpName | Salary   | Grade |
++---------+----------+-------+
+| Aarav   | 65000.00 | G2    |
+| Priya   | 72000.00 | G3    |
+| Rahul   | 48000.00 | G1    |
+| Sneha   | 91000.00 | G4    |
+| Vikram  | 55000.00 | G2    |
+| Neha    | 80000.00 | G3    |
+| Kabir   | 43000.00 | G1    |
++---------+----------+-------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary < s.MaxSalary;
++---------+----------+-------+
+| EmpName | Salary   | Grade |
++---------+----------+-------+
+| Aarav   | 65000.00 | G4    |
+| Aarav   | 65000.00 | G3    |
+| Aarav   | 65000.00 | G2    |
+| Priya   | 72000.00 | G4    |
+| Priya   | 72000.00 | G3    |
+| Rahul   | 48000.00 | G4    |
+| Rahul   | 48000.00 | G3    |
+| Rahul   | 48000.00 | G2    |
+| Rahul   | 48000.00 | G1    |
+| Sneha   | 91000.00 | G4    |
+| Vikram  | 55000.00 | G4    |
+| Vikram  | 55000.00 | G3    |
+| Vikram  | 55000.00 | G2    |
+| Neha    | 80000.00 | G4    |
+| Neha    | 80000.00 | G3    |
+| Kabir   | 43000.00 | G4    |
+| Kabir   | 43000.00 | G3    |
+| Kabir   | 43000.00 | G2    |
+| Kabir   | 43000.00 | G1    |
++---------+----------+-------+
+19 rows in set (0.00 sec)
+
+mysql> SELECT EmpName, DeptID , DeptName
+    -> FROM Employees
+    -> NATURAL JOIN Departments;
++---------+--------+------------------+
+| EmpName | DeptID | DeptName         |
++---------+--------+------------------+
+| Aarav   |     10 | Computer Science |
+| Priya   |     20 | Pharmacy         |
+| Rahul   |     10 | Computer Science |
+| Sneha   |     30 | Management       |
+| Vikram  |     20 | Pharmacy         |
+| Kabir   |     30 | Management       |
++---------+--------+------------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT EmpName, DeptName, Location
+    -> FROM Employees
+    -> NATURAL JOIN Departments
+    -> WHERE JOIN Departments
+    -> WHERE Location = 'Block B';
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'JOIN Departments
+WHERE Location = 'Block B'' at line 4
+mysql> SELECT EmpName, DeptName, Location
+    -> FROM Employees
+    -> NATURAL JOIN Departments
+    -> WHERE Location = 'Block B';
++---------+----------+----------+
+| EmpName | DeptName | Location |
++---------+----------+----------+
+| Priya   | Pharmacy | Block B  |
+| Vikram  | Pharmacy | Block B  |
++---------+----------+----------+
+2 rows in set (0.01 sec)
+
+mysql> SELECT EmpName, DeptName, Salary
+    -> FROM Employees
+    -> NATURAL JOIN Departments
+    -> WHERE Salary >= 70000;
++---------+------------+----------+
+| EmpName | DeptName   | Salary   |
++---------+------------+----------+
+| Priya   | Pharmacy   | 72000.00 |
+| Sneha   | Management | 91000.00 |
++---------+------------+----------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, d.DeptName, e.Salary
+    -> FROM Employees
+    -> FROM Employees^C
+mysql> SELECT e.EmpName, d.DeptName, e.Salary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> ORDER BY e.Salary DESC;
++---------+------------------+----------+
+| EmpName | DeptName         | Salary   |
++---------+------------------+----------+
+| Sneha   | Management       | 91000.00 |
+| Priya   | Pharmacy         | 72000.00 |
+| Aarav   | Computer Science | 65000.00 |
+| Vikram  | Pharmacy         | 55000.00 |
+| Rahul   | Computer Science | 48000.00 |
+| Kabir   | Management       | 43000.00 |
++---------+------------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT DISTINCT d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID;
++------------------+
+| DeptName         |
++------------------+
+| Computer Science |
+| Pharmacy         |
+| Management       |
++------------------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT d.DeptName, COUNT(e.EmpID) AS EmployeeCount
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName;
++------------------+---------------+
+| DeptName         | EmployeeCount |
++------------------+---------------+
+| Computer Science |             2 |
+| Pharmacy         |             2 |
+| Management       |             2 |
++------------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT d.DeptName, AVG(e.Salary) AS AverageSalary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName;
++------------------+---------------+
+| DeptName         | AverageSalary |
++------------------+---------------+
+| Computer Science |  56500.000000 |
+| Pharmacy         |  63500.000000 |
+| Management       |  67000.000000 |
++------------------+---------------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT d.DeptName, AVG(e.Salary) AS AverageSalary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName;
++------------------+---------------+
+| DeptName         | AverageSalary |
++------------------+---------------+
+| Computer Science |  56500.000000 |
+| Pharmacy         |  63500.000000 |
+| Management       |  67000.000000 |
++------------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT d.DeptName, AVG(e.Salary) AS AverageSalary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName
+    -> HAVING AVG(e.Salary) > 60000;
++------------+---------------+
+| DeptName   | AverageSalary |
++------------+---------------+
+| Pharmacy   |  63500.000000 |
+| Management |  67000.000000 |
++------------+---------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, d.DeptName, e.Salary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> ORDER BY e.Salary DESC
+    -> LIMIT 1;
++---------+------------+----------+
+| EmpName | DeptName   | Salary   |
++---------+------------+----------+
+| Sneha   | Management | 91000.00 |
++---------+------------+----------+
+1 row in set (0.00 sec)
+mysql> SELECT e.EmpName,e.city,d.DeptName,d.location
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ^C
+mysql> SELECT e.EmpName,e.city,d.DeptName,d.location
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID;
++---------+--------+------------------+----------+
+| EmpName | city   | DeptName         | location |
++---------+--------+------------------+----------+
+| Aarav   | Delhi  | Computer Science | Block A  |
+| Priya   | Mumbai | Pharmacy         | Block B  |
+| Rahul   | Delhi  | Computer Science | Block A  |
+| Sneha   | Pune   | Management       | Block C  |
+| Vikram  | Jaipur | Pharmacy         | Block B  |
+| Kabir   | Pune   | Management       | Block C  |
++---------+--------+------------------+----------+
+6 rows in set (0.01 sec)
+
+mysql> SELECT e.EmpName, d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> WHERE d.DeptName = 'Computer Science';
++---------+------------------+
+| EmpName | DeptName         |
++---------+------------------+
+| Aarav   | Computer Science |
+| Rahul   | Computer Science |
++---------+------------------+
+2 rows in set (0.01 sec)
+
+mysql> SELECT e.EmpName, e.Salary, s.Grade, s.MinSalary
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary > s.MinSalary;
++---------+----------+-------+-----------+
+| EmpName | Salary   | Grade | MinSalary |
++---------+----------+-------+-----------+
+| Aarav   | 65000.00 | G2    |  50000.00 |
+| Aarav   | 65000.00 | G1    |      0.00 |
+| Priya   | 72000.00 | G3    |  70000.00 |
+| Priya   | 72000.00 | G2    |  50000.00 |
+| Priya   | 72000.00 | G1    |      0.00 |
+| Rahul   | 48000.00 | G1    |      0.00 |
+| Sneha   | 91000.00 | G4    |  90000.00 |
+| Sneha   | 91000.00 | G3    |  70000.00 |
+| Sneha   | 91000.00 | G2    |  50000.00 |
+| Sneha   | 91000.00 | G1    |      0.00 |
+| Vikram  | 55000.00 | G2    |  50000.00 |
+| Vikram  | 55000.00 | G1    |      0.00 |
+| Neha    | 80000.00 | G3    |  70000.00 |
+| Neha    | 80000.00 | G2    |  50000.00 |
+| Neha    | 80000.00 | G1    |      0.00 |
+| Kabir   | 43000.00 | G1    |      0.00 |
++---------+----------+-------+-----------+
+16 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.Salary, e.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary >= s.MinSalary
+    -> AND e.Salary <= s.MaxSalary;
+ERROR 1054 (42S22): Unknown column 'e.Grade' in 'field list'
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary >= s.MinSalary
+    -> AND e.Salary <= s.MaxSalary;
++---------+----------+-------+
+| EmpName | Salary   | Grade |
++---------+----------+-------+
+| Aarav   | 65000.00 | G2    |
+| Priya   | 72000.00 | G3    |
+| Rahul   | 48000.00 | G1    |
+| Sneha   | 91000.00 | G4    |
+| Vikram  | 55000.00 | G2    |
+| Neha    | 80000.00 | G3    |
+| Kabir   | 43000.00 | G1    |
++---------+----------+-------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary < s.MaxSalary;
++---------+----------+-------+
+| EmpName | Salary   | Grade |
++---------+----------+-------+
+| Aarav   | 65000.00 | G4    |
+| Aarav   | 65000.00 | G3    |
+| Aarav   | 65000.00 | G2    |
+| Priya   | 72000.00 | G4    |
+| Priya   | 72000.00 | G3    |
+| Rahul   | 48000.00 | G4    |
+| Rahul   | 48000.00 | G3    |
+| Rahul   | 48000.00 | G2    |
+| Rahul   | 48000.00 | G1    |
+| Sneha   | 91000.00 | G4    |
+| Vikram  | 55000.00 | G4    |
+| Vikram  | 55000.00 | G3    |
+| Vikram  | 55000.00 | G2    |
+| Neha    | 80000.00 | G4    |
+| Neha    | 80000.00 | G3    |
+| Kabir   | 43000.00 | G4    |
+| Kabir   | 43000.00 | G3    |
+| Kabir   | 43000.00 | G2    |
+| Kabir   | 43000.00 | G1    |
++---------+----------+-------+
+19 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.Salary, s.Grade
+    -> FROM Employees e
+    -> JOIN SalaryGrades s
+    -> ON e.Salary >= s.MinSalary;
++---------+----------+-------+
+| EmpName | Salary   | Grade |
++---------+----------+-------+
+| Aarav   | 65000.00 | G2    |
+| Aarav   | 65000.00 | G1    |
+| Priya   | 72000.00 | G3    |
+| Priya   | 72000.00 | G2    |
+| Priya   | 72000.00 | G1    |
+| Rahul   | 48000.00 | G1    |
+| Sneha   | 91000.00 | G4    |
+| Sneha   | 91000.00 | G3    |
+| Sneha   | 91000.00 | G2    |
+| Sneha   | 91000.00 | G1    |
+| Vikram  | 55000.00 | G2    |
+| Vikram  | 55000.00 | G1    |
+| Neha    | 80000.00 | G3    |
+| Neha    | 80000.00 | G2    |
+| Neha    | 80000.00 | G1    |
+| Kabir   | 43000.00 | G1    |
++---------+----------+-------+
+16 rows in set (0.00 sec)
+
+mysql> SELECT EmpName, DeptID, DeptName
+    -> FROM Employees
+    -> NATURAL JOIN Departments;
++---------+--------+------------------+
+| EmpName | DeptID | DeptName         |
++---------+--------+------------------+
+| Aarav   |     10 | Computer Science |
+| Priya   |     20 | Pharmacy         |
+| Rahul   |     10 | Computer Science |
+| Sneha   |     30 | Management       |
+| Vikram  |     20 | Pharmacy         |
+| Kabir   |     30 | Management       |
++---------+--------+------------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT EmpName, DeptName, Location
+    -> FROM Employees
+    -> NATURAL JOIN Departments
+    -> WHERE Location = 'Block B';
++---------+----------+----------+
+| EmpName | DeptName | Location |
++---------+----------+----------+
+| Priya   | Pharmacy | Block B  |
+| Vikram  | Pharmacy | Block B  |
++---------+----------+----------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT EmpName, DeptName, Salary
+    -> FROM Employees
+    -> NATURAL JOIN Departments
+    -> WHERE Salary >= 70000;
++---------+------------+----------+
+| EmpName | DeptName   | Salary   |
++---------+------------+----------+
+| Priya   | Pharmacy   | 72000.00 |
+| Sneha   | Management | 91000.00 |
++---------+------------+----------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, d.DeptName, e.Salary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> ORDER BY e.Salary DESC;
++---------+------------------+----------+
+| EmpName | DeptName         | Salary   |
++---------+------------------+----------+
+| Sneha   | Management       | 91000.00 |
+| Priya   | Pharmacy         | 72000.00 |
+| Aarav   | Computer Science | 65000.00 |
+| Vikram  | Pharmacy         | 55000.00 |
+| Rahul   | Computer Science | 48000.00 |
+| Kabir   | Management       | 43000.00 |
++---------+------------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT DISTINCT d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID;
++------------------+
+| DeptName         |
++------------------+
+| Computer Science |
+| Pharmacy         |
+| Management       |
++------------------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT d.DeptName, COUNT(e.EmpID) AS EmployeeCount
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName;
++------------------+---------------+
+| DeptName         | EmployeeCount |
++------------------+---------------+
+| Computer Science |             2 |
+| Pharmacy         |             2 |
+| Management       |             2 |
++------------------+---------------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT d.DeptName, AVG(e.Salary) AS AverageSalary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName;
++------------------+---------------+
+| DeptName         | AverageSalary |
++------------------+---------------+
+| Computer Science |  56500.000000 |
+| Pharmacy         |  63500.000000 |
+| Management       |  67000.000000 |
++------------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT d.DeptName, AVG(e.Salary) AS AverageSalary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName
+    -> HAVING AVG(e.Salary) > 60000;
++------------+---------------+
+| DeptName   | AverageSalary |
++------------+---------------+
+| Pharmacy   |  63500.000000 |
+| Management |  67000.000000 |
++------------+---------------+
+2 rows in set (0.01 sec)
+
+mysql> SELECT e.EmpName, d.DeptName, e.Salary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> ORDER BY e.Salary DESC
+    -> LIMIT 1;
++---------+------------+----------+
+| EmpName | DeptName   | Salary   |
++---------+------------+----------+
+| Sneha   | Management | 91000.00 |
++---------+------------+----------+
+1 row in set (0.00 sec)
+
+mysql> SELECT e.EmpName, d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> WHERE d.DeptName IN ('Computer Science', 'Pharmacy');
++---------+------------------+
+| EmpName | DeptName         |
++---------+------------------+
+| Aarav   | Computer Science |
+| Priya   | Pharmacy         |
+| Rahul   | Computer Science |
+| Vikram  | Pharmacy         |
++---------+------------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpName, e.City, e.Salary, d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> WHERE e.City IN ('Delhi', 'Pune')
+    -> AND e.Salary >= 50000;
++---------+-------+----------+------------------+
+| EmpName | City  | Salary   | DeptName         |
++---------+-------+----------+------------------+
+| Aarav   | Delhi | 65000.00 | Computer Science |
+| Sneha   | Pune  | 91000.00 | Management       |
++---------+-------+----------+------------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT e.EmpID, e.EmpName, e.DeptID, d.DeptName
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID;
++-------+---------+--------+------------------+
+| EmpID | EmpName | DeptID | DeptName         |
++-------+---------+--------+------------------+
+|   101 | Aarav   |     10 | Computer Science |
+|   102 | Priya   |     20 | Pharmacy         |
+|   103 | Rahul   |     10 | Computer Science |
+|   104 | Sneha   |     30 | Management       |
+|   105 | Vikram  |     20 | Pharmacy         |
+|   107 | Kabir   |     30 | Management       |
++-------+---------+--------+------------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT DeptName, COUNT(EmpID) AS EmployeeCount
+    -> FROM Employees
+    -> NATURAL JOIN Departments
+    -> GROUP BY DeptName;
++------------------+---------------+
+| DeptName         | EmployeeCount |
++------------------+---------------+
+| Computer Science |             2 |
+| Pharmacy         |             2 |
+| Management       |             2 |
++------------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT d.DeptName, SUM(e.Salary) AS TotalSalary
+    -> FROM Employees e
+    -> INNER JOIN Departments d
+    -> ON e.DeptID = d.DeptID
+    -> GROUP BY d.DeptName
+    -> HAVING SUM(e.Salary) > 100000;
++------------------+-------------+
+| DeptName         | TotalSalary |
++------------------+-------------+
+| Computer Science |   113000.00 |
+| Pharmacy         |   127000.00 |
+| Management       |   134000.00 |
++------------------+-------------+
+3 rows in set (0.00 sec)
+
