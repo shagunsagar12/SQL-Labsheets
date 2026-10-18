@@ -1,0 +1,392 @@
+ysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| collegedb          |
+| collegejoindb      |
+| company_db         |
+| information_schema |
+| lab                |
+| lab1               |
+| lab4               |
+| mysql              |
+| performance_schema |
+| practical          |
+| practice_sql       |
+| sql_lab            |
+| sys                |
++--------------------+
+13 rows in set (0.01 sec)
+
+mysql> use collegedb;
+Database changed
+mysql> show tables;
++---------------------+
+| Tables_in_collegedb |
++---------------------+
+| course              |
+| enrollment          |
+| student             |
++---------------------+
+3 rows in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE ShowStudents()
+    -> BEGIN
+    -> SELECT * FROM Student;
+    -> END //
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> DELIMITER ;
+mysql> CALL ShowStudents();
++------------+--------------+----------------+------------+----------+
+| Student_ID | Student_Name | Email          | Phone      | Branch   |
++------------+--------------+----------------+------------+----------+
+|        101 | Aman         | aman@gmail.com | 9876543210 | CSE      |
+|        102 | Neha         | NULL           | 9876543211 | Pharmacy |
+|        103 | Ravi         |                | 9876543212 | CSE      |
++------------+--------------+----------------+------------+----------+
+3 rows in set (0.11 sec)
+
+Query OK, 0 rows affected (0.12 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE ShowDepartments()
+    -> BEGIN
+    -> SELECT * FROM Department;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL ShowDepartments();
+ERROR 1146 (42S02): Table 'collegedb.department' doesn't exist
+mysql> DELIMITER ;
+mysql> CALL ShowDepartment();
+ERROR 1305 (42000): PROCEDURE collegedb.ShowDepartment does not exist
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE ShowDepartments()
+    -> BEGIN
+    -> SELECT * FROM Department;
+    -> END //
+ERROR 1304 (42000): PROCEDURE ShowDepartments already exists
+mysql> DELIMITER ;
+mysql> CALL ShowDepartments();
+ERROR 1146 (42S02): Table 'collegedb.department' doesn't exist
+mysql> CREATE TABLE Department
+    -> (
+    -> DeptID INT PRIMARY KEY,
+    -> DeptName VARCHAR(50) NOT NULL,
+    -> Location VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> CREATE TABLE Student
+    -> ( StudentID INT PRIMARY KEY,
+    -> StudentName VARCHAR(50) NOT NULL,
+    -> Age INT,
+    -> Gender VARCHAR(10),
+    -> Marks DECIMAL(5,2),
+    -> DeptID INT,
+    -> Email VARCHAR(100),
+    -> FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+    -> );
+ERROR 1050 (42S01): Table 'student' already exists
+mysql>  INSERT INTO Department
+    -> VALUES
+    -> (101, 'Computer Science', 'Block A'),
+    -> (102, 'Pharmacy', 'Block B'),
+    -> (103, 'Commerce', 'Block C'),
+    -> (104, 'Mathematics', 'Block D');
+Query OK, 4 rows affected (0.02 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE ShowStudents()
+    -> BEGIN
+    -> SELECT * FROM Student;
+    -> END //
+ERROR 1304 (42000): PROCEDURE ShowStudents already exists
+mysql> DELIMITER ;
+mysql> CALL ShowStudents();
++------------+--------------+----------------+------------+----------+
+| Student_ID | Student_Name | Email          | Phone      | Branch   |
++------------+--------------+----------------+------------+----------+
+|        101 | Aman         | aman@gmail.com | 9876543210 | CSE      |
+|        102 | Neha         | NULL           | 9876543211 | Pharmacy |
+|        103 | Ravi         |                | 9876543212 | CSE      |
++------------+--------------+----------------+------------+----------+
+3 rows in set (0.00 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE ShowDepartments()
+    -> BEGIN
+    -> SELECT * FROM Department;
+    -> END //
+ERROR 1304 (42000): PROCEDURE ShowDepartments already exists
+mysql> DELIMITER ;
+mysql> CALL ShowDepartments();
++--------+------------------+----------+
+| DeptID | DeptName         | Location |
++--------+------------------+----------+
+|    101 | Computer Science | Block A  |
+|    102 | Pharmacy         | Block B  |
+|    103 | Commerce         | Block C  |
+|    104 | Mathematics      | Block D  |
++--------+------------------+----------+
+4 rows in set (0.00 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE ShowCourses()
+    -> BEGIN
+    -> SELECT * FROM Course;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL ShowCourses();
++-----------+--------------+------------+---------+
+| Course_ID | Course_Name  | Department | Credits |
++-----------+--------------+------------+---------+
+|       201 | DBMS         | CSE        |       4 |
+|       202 | Python       | CSE        |       3 |
+|       203 | Pharmacology | Pharmacy   |       4 |
++-----------+--------------+------------+---------+
+3 rows in set (0.01 sec)
+
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE GetStudent(IN sid INT)
+    -> BEGIN
+    -> SELECT *
+    -> FROM Student
+    -> WHERE StudentID = sid;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL GetStudent(3);
+ERROR 1054 (42S22): Unknown column 'StudentID' in 'where clause'
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE GetStudent(IN sid INT)
+    -> BEGIN
+    -> SELECT *
+    -> FROM Student
+    -> WHERE StudentID = sid;
+    -> END //
+ERROR 1304 (42000): PROCEDURE GetStudent already exists
+mysql> DELIMITER ;
+mysql> CALL GetStudent(3);
+ERROR 1054 (42S22): Unknown column 'StudentID' in 'where clause'
+mysql> MySQL Workbench steps:
+    -> DELIMITER //
+    -> CREATE PROCEDURE GetStudent(IN sid INT)
+    -> BEGIN
+    -> SELECT *
+    -> FROM Student
+    -> WHERE StudentID = sid;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'MySQL Workbench steps:
+DELIMITER // CREATE PROCEDURE GetStudent(IN sid INT)
+BEG' at line 1
+mysql> END //
+    -> DELIMITER ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'END //
+DELIMITER' at line 1
+mysql> CALL GetStudent(3);
+ERROR 1054 (42S22): Unknown column 'StudentID' in 'where clause'
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE GetStudentsByDept(IN dept INT)
+    -> BEGIN
+    -> SELECT *
+    -> FROM Student
+    -> WHERE DeptID = dept;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL GetStudentsByDept(102);
+ERROR 1054 (42S22): Unknown column 'DeptID' in 'where clause'
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE StudentsAboveMarks(IN minimum_marks DECIMAL(5,2))
+    -> BEGIN
+    -> SELECT *
+    -> FROM Student
+    -> WHERE Marks > minimum_marks;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL StudentsAboveMarks(80);
+ERROR 1054 (42S22): Unknown column 'Marks' in 'where clause'
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE TotalStudents()
+    -> BEGIN
+    -> DECLARE total INT;
+    -> SELECT COUNT(*)
+    -> INTO total
+    -> FROM Student;
+    -> SELECT total AS Total_Students;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL TotalStudents();
++----------------+
+| Total_Students |
++----------------+
+|              3 |
++----------------+
+1 row in set (0.01 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE CheckResult(IN sid INT)
+    -> BEGIN
+    -> DECLARE student_marks DECIMAL(5,2);
+    -> SELECT Marks
+    -> INTO student_marks
+    -> FROM Student
+    -> WHERE StudentID = sid;
+    -> IF student_marks >= 50 THEN
+    -> SELECT 'Pass' AS Result;
+    -> ELSE
+    -> SELECT 'Fail' AS Result;
+    -> END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+ysql> DELIMITER //
+mysql> CREATE FUNCTION AddTwoNumbers(a INT, b INT)
+    -> RETURNS INT
+    -> DETERMINISTIC
+    -> BEGIN
+    -> RETURN a + b;
+    -> END //
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT AddTwoNumbers(10,20);
++----------------------+
+| AddTwoNumbers(10,20) |
++----------------------+
+|                   30 |
++----------------------+
+1 row in set (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE FUNCTION FindSquare(num INT)
+    -> RETURNS INT
+    -> DETERMINISTIC
+    -> BEGIN
+    -> RETURN num * num;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT FindSquare(5);
++---------------+
+| FindSquare(5) |
++---------------+
+|            25 |
++---------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql> CREATE FUNCTION ResultStatus(marks DECIMAL(5,2))
+    -> RETURNS VARCHAR(10)
+    -> DETERMINISTIC
+    -> BEGIN
+    -> IF marks >= 50 THEN
+    -> RETURN 'Pass';
+    -> ELSE
+    -> RETURN 'Fail';
+    -> END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT ResultStatus(75);
++------------------+
+| ResultStatus(75) |
++------------------+
+| Pass             |
++------------------+
+1 row in set (0.01 sec)
+
+mysql> DELIMITER //
+mysql> CREATE FUNCTION StudentGrade(marks DECIMAL(5,2))
+    -> RETURNS VARCHAR(5)
+    -> DETERMINISTIC
+    -> BEGIN
+    -> IF marks >= 90 THEN
+    -> RETURN 'A';
+    -> ELSEIF marks >= 75 THEN
+    -> RETURN 'B';
+    -> ELSEIF marks >= 60 THEN
+    -> RETURN 'C';
+    -> ELSE
+    -> RETURN 'D';
+    -> END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT StudentGrade(85);
++------------------+
+| StudentGrade(85) |
++------------------+
+| B                |
++------------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql> CREATE FUNCTION AgeCategory(age INT)
+    -> RETURNS VARCHAR(20)
+    -> DETERMINISTIC
+    -> BEGIN
+    -> IF age >= 18 THEN
+    -> RETURN 'Adult';
+    -> ELSE
+    -> RETURN 'Minor';
+    -> END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT AgeCategory(20);
++-----------------+
+| AgeCategory(20) |
++-----------------+
+| Adult           |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql> CREATE FUNCTION CalculateBonus(marks DECIMAL(5,2))
+    -> RETURNS INT
+    -> DETERMINISTIC
+    -> BEGIN
+    -> IF marks >= 90 THEN
+    -> RETURN 1000;
+    -> ELSEIF marks >= 75 THEN
+    -> RETURN 500;
+    -> ELSE
+    -> RETURN 200;
+    -> END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT CalculateBonus(85);
++--------------------+
+| CalculateBonus(85) |
++--------------------+
+|                500 |
++--------------------+
+1 row in set (0.00 sec)
