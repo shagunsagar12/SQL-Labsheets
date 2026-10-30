@@ -1,0 +1,984 @@
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| collegedb          |
+| collegejoindb      |
+| company_db         |
+| information_schema |
+| lab                |
+| lab1               |
+| lab4               |
+| mysql              |
+| performance_schema |
+| practical          |
+| practice_sql       |
+| sql_lab            |
+| sys                |
++--------------------+
+13 rows in set (0.00 sec)
+
+mysql> CREATE DATABASE Hospital_Cursor_Trigger_Lab;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> USE Hospital_Cursor_Trigger_Lab;
+Database changed
+mysql> CREATE TABLE Doctors(
+    -> DoctorID INT PRIMARY KEY,
+    -> DoctorName VARCHAR(50),
+    -> Department VARCHAR(40),
+    -> ConsultationFee DECIMAL(10,2),
+    -> Status VARCHAR(20)
+    -> );
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> INSERT INTO Doctors VALUES
+    -> (201,'Dr. Anil','Cardiology',1200,'Active'),
+    -> (202,'Dr. Beena','Pediatrics',900,'Active'),
+    -> (203,'Dr. Chirag','Neurology',1500,'Active'),
+    -> (204,'Dr. Divya','Dermatology',1000,'Active'),
+    -> (205,'Dr. Eshan','Cardiology',1300,'Active'),
+    -> (206,'Dr. Farah','Pediatrics',850,'Active');
+Query OK, 6 rows affected (0.02 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+
+mysql> CREATE TABLE Doctor_Audit(
+    -> AuditID INT AUTO_INCREMENT PRIMARY KEY,
+    -> DoctorID INT,
+    -> ActionType VARCHAR(30),
+    -> OldFee DECIMAL(10,2),
+    -> NewFee DECIMAL(10,2),
+    -> ActionTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> CREATE TABLE Fee_Log(
+    -> LogID INT AUTO_INCREMENT PRIMARY KEY,
+    -> DoctorID INT,
+    -> DoctorName VARCHAR(50),
+    -> OldFee DECIMAL(10,2),
+    -> NewFee DECIMAL(10,2),
+    -> ChangedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE DisplayDoctors()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->     DECLARE v_name VARCHAR(100);
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID, DoctorName FROM Doctors;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id, v_name;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         SELECT v_id AS DoctorID, v_name AS DoctorName;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL DisplayDoctors();
++----------+------------+
+| DoctorID | DoctorName |
++----------+------------+
+|      201 | Dr. Anil   |
++----------+------------+
+1 row in set (0.01 sec)
+
++----------+------------+
+| DoctorID | DoctorName |
++----------+------------+
+|      202 | Dr. Beena  |
++----------+------------+
+1 row in set (0.01 sec)
+
++----------+------------+
+| DoctorID | DoctorName |
++----------+------------+
+|      203 | Dr. Chirag |
++----------+------------+
+1 row in set (0.01 sec)
+
++----------+------------+
+| DoctorID | DoctorName |
++----------+------------+
+|      204 | Dr. Divya  |
++----------+------------+
+1 row in set (0.01 sec)
+
++----------+------------+
+| DoctorID | DoctorName |
++----------+------------+
+|      205 | Dr. Eshan  |
++----------+------------+
+1 row in set (0.01 sec)
+
++----------+------------+
+| DoctorID | DoctorName |
++----------+------------+
+|      206 | Dr. Farah  |
++----------+------------+
+1 row in set (0.01 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE HighFeeDoctors()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->     DECLARE v_name VARCHAR(100);
+    ->     DECLARE v_fee DECIMAL(10,2);
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID, DoctorName, ConsultationFee
+    ->         FROM Doctors
+    ->         WHERE ConsultationFee > 1000;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id, v_name, v_fee;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         SELECT v_id AS DoctorID,
+    ->                v_name AS DoctorName,
+    ->                v_fee AS ConsultationFee;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL HighFeeDoctors();
++----------+------------+-----------------+
+| DoctorID | DoctorName | ConsultationFee |
++----------+------------+-----------------+
+|      201 | Dr. Anil   |         1200.00 |
++----------+------------+-----------------+
+1 row in set (0.01 sec)
+
++----------+------------+-----------------+
+| DoctorID | DoctorName | ConsultationFee |
++----------+------------+-----------------+
+|      203 | Dr. Chirag |         1500.00 |
++----------+------------+-----------------+
+1 row in set (0.01 sec)
+
++----------+------------+-----------------+
+| DoctorID | DoctorName | ConsultationFee |
++----------+------------+-----------------+
+|      205 | Dr. Eshan  |         1300.00 |
++----------+------------+-----------------+
+1 row in set (0.01 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE TotalDoctorFee(OUT total DECIMAL(10,2))
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_fee DECIMAL(10,2);
+    ->     DECLARE fee_sum DECIMAL(10,2) DEFAULT 0;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT ConsultationFee FROM Doctors;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_fee;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         SET fee_sum = fee_sum + COALESCE(v_fee, 0);
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    ->
+    ->     SET total = fee_sum;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL TotalDoctorFee(@total);
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT @total AS TotalConsultationFee;
++----------------------+
+| TotalConsultationFee |
++----------------------+
+|              6750.00 |
++----------------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE CountCardiologyDoctors(OUT total INT)
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->     DECLARE doctor_count INT DEFAULT 0;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID
+    ->         FROM Doctors
+    ->         WHERE Department = 'Cardiology';
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         SET doctor_count = doctor_count + 1;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    ->
+    ->     SET total = doctor_count;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL CountCardiologyDoctors(@cardiology_count);
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT @cardiology_count AS CardiologyDoctors;
++-------------------+
+| CardiologyDoctors |
++-------------------+
+|                 2 |
++-------------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE AverageDoctorFee(OUT avg_fee DECIMAL(10,2))
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_fee DECIMAL(10,2);
+    ->     DECLARE total_fee DECIMAL(12,2) DEFAULT 0;
+    ->     DECLARE doctor_count INT DEFAULT 0;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT ConsultationFee FROM Doctors;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_fee;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         IF v_fee IS NOT NULL THEN
+    ->             SET total_fee = total_fee + v_fee;
+    ->             SET doctor_count = doctor_count + 1;
+    ->         END IF;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    ->
+    ->     IF doctor_count = 0 THEN
+    ->         SET avg_fee = NULL;
+    ->     ELSE
+    ->         SET avg_fee = total_fee / doctor_count;
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL AverageDoctorFee(@average_fee);
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT @average_fee AS AverageConsultationFee;
++------------------------+
+| AverageConsultationFee |
++------------------------+
+|                1125.00 |
++------------------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE IncreasePediatricsFee()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->     DECLARE v_fee DECIMAL(10,2);
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID, ConsultationFee
+    ->         FROM Doctors
+    ->         WHERE Department = 'Pediatrics';
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id, v_fee;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         UPDATE Doctors
+    ->         SET ConsultationFee = ROUND(ConsultationFee * 1.10, 2)
+    ->         WHERE DoctorID = v_id;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL IncreasePediatricsFee();
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> SELECT DoctorID, DoctorName, Department, ConsultationFee
+    -> FROM Doctors
+    -> WHERE Department = 'Pediatrics';
++----------+------------+------------+-----------------+
+| DoctorID | DoctorName | Department | ConsultationFee |
++----------+------------+------------+-----------------+
+|      202 | Dr. Beena  | Pediatrics |          990.00 |
+|      206 | Dr. Farah  | Pediatrics |          935.00 |
++----------+------------+------------+-----------------+
+2 rows in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE ReviewLowFeeDoctors()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID
+    ->         FROM Doctors
+    ->         WHERE ConsultationFee < 1000;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         UPDATE Doctors
+    ->         SET Status = 'Review'
+    ->         WHERE DoctorID = v_id;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL ReviewLowFeeDoctors();
+Query OK, 0 rows affected (0.00 sec)
+
+mysql>
+mysql> SELECT DoctorID, DoctorName, ConsultationFee, Status
+    -> FROM Doctors
+    -> WHERE ConsultationFee < 1000;
++----------+------------+-----------------+--------+
+| DoctorID | DoctorName | ConsultationFee | Status |
++----------+------------+-----------------+--------+
+|      202 | Dr. Beena  |          990.00 | Review |
+|      206 | Dr. Farah  |          935.00 | Review |
++----------+------------+-----------------+--------+
+2 rows in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE DoctorReport()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_name VARCHAR(100);
+    ->     DECLARE v_department VARCHAR(50);
+    ->     DECLARE v_fee DECIMAL(10,2);
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorName, Department, ConsultationFee
+    ->         FROM Doctors
+    ->         ORDER BY Department, DoctorName;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_name, v_department, v_fee;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         SELECT v_name AS DoctorName,
+    ->                v_department AS Department,
+    ->                v_fee AS ConsultationFee;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL DoctorReport();
++------------+------------+-----------------+
+| DoctorName | Department | ConsultationFee |
++------------+------------+-----------------+
+| Dr. Anil   | Cardiology |         1200.00 |
++------------+------------+-----------------+
+1 row in set (0.01 sec)
+
++------------+------------+-----------------+
+| DoctorName | Department | ConsultationFee |
++------------+------------+-----------------+
+| Dr. Eshan  | Cardiology |         1300.00 |
++------------+------------+-----------------+
+1 row in set (0.01 sec)
+
++------------+-------------+-----------------+
+| DoctorName | Department  | ConsultationFee |
++------------+-------------+-----------------+
+| Dr. Divya  | Dermatology |         1000.00 |
++------------+-------------+-----------------+
+1 row in set (0.01 sec)
+
++------------+------------+-----------------+
+| DoctorName | Department | ConsultationFee |
++------------+------------+-----------------+
+| Dr. Chirag | Neurology  |         1500.00 |
++------------+------------+-----------------+
+1 row in set (0.01 sec)
+
++------------+------------+-----------------+
+| DoctorName | Department | ConsultationFee |
++------------+------------+-----------------+
+| Dr. Beena  | Pediatrics |          990.00 |
++------------+------------+-----------------+
+1 row in set (0.01 sec)
+
++------------+------------+-----------------+
+| DoctorName | Department | ConsultationFee |
++------------+------------+-----------------+
+| Dr. Farah  | Pediatrics |          935.00 |
++------------+------------+-----------------+
+1 row in set (0.01 sec)
+
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE CountActiveDoctors(OUT total INT)
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->     DECLARE doctor_count INT DEFAULT 0;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID
+    ->         FROM Doctors
+    ->         WHERE Status = 'Active';
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         SET doctor_count = doctor_count + 1;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    ->
+    ->     SET total = doctor_count;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL CountActiveDoctors(@active_count);
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT @active_count AS ActiveDoctors;
++---------------+
+| ActiveDoctors |
++---------------+
+|             4 |
++---------------+
+1 row in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE IncreaseHighFees()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID
+    ->         FROM Doctors
+    ->         WHERE ConsultationFee >= 1200;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         UPDATE Doctors
+    ->         SET ConsultationFee = ROUND(ConsultationFee * 1.05, 2)
+    ->         WHERE DoctorID = v_id;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL IncreaseHighFees();
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> SELECT DoctorID, DoctorName, ConsultationFee
+    -> FROM Doctors
+    -> WHERE ConsultationFee >= 1260;
++----------+------------+-----------------+
+| DoctorID | DoctorName | ConsultationFee |
++----------+------------+-----------------+
+|      201 | Dr. Anil   |         1260.00 |
+|      203 | Dr. Chirag |         1575.00 |
+|      205 | Dr. Eshan  |         1365.00 |
++----------+------------+-----------------+
+3 rows in set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE IncreaseHighFees()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE v_id INT;
+    ->
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DoctorID
+    ->         FROM Doctors
+    ->         WHERE ConsultationFee >= 1200;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND
+    ->         SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO v_id;
+    ->
+    ->         IF done = 1 THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    ->
+    ->         UPDATE Doctors
+    ->         SET ConsultationFee = ROUND(ConsultationFee * 1.05, 2)
+    ->         WHERE DoctorID = v_id;
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END //
+ERROR 1304 (42000): PROCEDURE IncreaseHighFees already exists
+mysql>
+mysql> DELIMITER ;
+mysql>
+mysql> CALL IncreaseHighFees();
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> SELECT DoctorID, DoctorName, ConsultationFee
+    -> FROM Doctors
+    -> WHERE ConsultationFee >= 1260;
++----------+------------+-----------------+
+| DoctorID | DoctorName | ConsultationFee |
++----------+------------+-----------------+
+|      201 | Dr. Anil   |         1323.00 |
+|      203 | Dr. Chirag |         1653.75 |
+|      205 | Dr. Eshan  |         1433.25 |
++----------+------------+-----------------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE TABLE IF NOT EXISTS Doctor_Audit (
+    ->     AuditID INT AUTO_INCREMENT PRIMARY KEY,
+    ->     DoctorID INT,
+    ->     ActionType VARCHAR(50),
+    ->     OldConsultationFee DECIMAL(10,2),
+    ->     NewConsultationFee DECIMAL(10,2),
+    ->     ConsultationFee DECIMAL(10,2),
+    ->     OldDepartment VARCHAR(50),
+    ->     NewDepartment VARCHAR(50),
+    ->     AuditTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql>
+mysql> CREATE TABLE IF NOT EXISTS Fee_Log (
+    ->     LogID INT AUTO_INCREMENT PRIMARY KEY,
+    ->     DoctorID INT,
+    ->     DoctorName VARCHAR(100),
+    ->     OldFee DECIMAL(10,2),
+    ->     NewFee DECIMAL(10,2),
+    ->     LogTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER AfterDoctorInsert
+    -> AFTER INSERT ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     INSERT INTO Doctor_Audit
+    ->         (DoctorID, ActionType, NewConsultationFee)
+    ->     VALUES
+    ->         (NEW.DoctorID, 'INSERT', NEW.ConsultationFee);
+    -> END //
+Query OK, 0 rows affected (0.03 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> INSERT INTO Doctors
+    ->     (DoctorID, DoctorName, Department, ConsultationFee, Status)
+    -> VALUES
+    ->     (107, 'Amit Sharma', 'Cardiology', 1500, 'Active');
+ERROR 1054 (42S22): Unknown column 'NewConsultationFee' in 'field list'
+mysql>
+mysql> SELECT *
+    -> FROM Doctor_Audit
+    -> WHERE DoctorID = 107;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER AfterDoctorFeeUpdate
+    -> AFTER UPDATE ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF NOT (OLD.ConsultationFee <=> NEW.ConsultationFee) THEN
+    ->         INSERT INTO Doctor_Audit
+    ->             (DoctorID, ActionType,
+    ->              OldConsultationFee, NewConsultationFee)
+    ->         VALUES
+    ->             (NEW.DoctorID, 'FEE UPDATE',
+    ->              OLD.ConsultationFee, NEW.ConsultationFee);
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> UPDATE Doctors
+    -> SET ConsultationFee = 1800
+    -> WHERE DoctorID = 107;
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql>
+mysql> SELECT *
+    -> FROM Doctor_Audit
+    -> WHERE DoctorID = 107
+    -> ORDER BY AuditID;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER UppercaseDoctorName
+    -> BEFORE INSERT ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     SET NEW.DoctorName = UPPER(NEW.DoctorName);
+    -> END //
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> INSERT INTO Doctors
+    ->     (DoctorID, DoctorName, Department, ConsultationFee, Status)
+    -> VALUES
+    ->     (108, 'rahul kumar', 'Pediatrics', 900, 'Active');
+ERROR 1054 (42S22): Unknown column 'NewConsultationFee' in 'field list'
+mysql>
+mysql> SELECT DoctorID, DoctorName
+    -> FROM Doctors
+    -> WHERE DoctorID = 108;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER PreventNegativeFeeInsert
+    -> BEFORE INSERT ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF NEW.ConsultationFee < 0 THEN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'ConsultationFee cannot be negative';
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> INSERT INTO Doctors
+    ->     (DoctorID, DoctorName, Department, ConsultationFee, Status)
+    -> VALUES
+    ->     (109, 'Test Doctor', 'Cardiology', -500, 'Active');
+ERROR 1644 (45000): ConsultationFee cannot be negative
+mysql> INSERT INTO Doctors
+    ->     (DoctorID, DoctorName, Department, ConsultationFee, Status)
+    -> VALUES
+    ->     (109, 'Test Doctor', 'Cardiology', 500, 'Active');
+ERROR 1054 (42S22): Unknown column 'NewConsultationFee' in 'field list'
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER AfterDoctorDelete
+    -> AFTER DELETE ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     INSERT INTO Doctor_Audit
+    ->         (DoctorID, ActionType, ConsultationFee)
+    ->     VALUES
+    ->         (OLD.DoctorID, 'DELETE', OLD.ConsultationFee);
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> DELETE FROM Doctors
+    -> WHERE DoctorID = 108;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> SELECT *
+    -> FROM Doctor_Audit
+    -> WHERE DoctorID = 108
+    -> ORDER BY AuditID;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER LogDoctorFeeChanges
+    -> AFTER UPDATE ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF NOT (OLD.ConsultationFee <=> NEW.ConsultationFee) THEN
+    ->         INSERT INTO Fee_Log
+    ->             (DoctorID, DoctorName, OldFee, NewFee)
+    ->         VALUES
+    ->             (NEW.DoctorID, NEW.DoctorName,
+    ->              OLD.ConsultationFee, NEW.ConsultationFee);
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> UPDATE Doctors
+    -> SET ConsultationFee = 1900
+    -> WHERE DoctorID = 107;
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql>
+mysql> SELECT *
+    -> FROM Fee_Log
+    -> WHERE DoctorID = 107;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER PreventNegativeFeeUpdate
+    -> BEFORE UPDATE ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF NEW.ConsultationFee < 0 THEN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'ConsultationFee cannot be negative';
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> UPDATE Doctors
+    -> SET ConsultationFee = -200
+    -> WHERE DoctorID = 107;
+Query OK, 0 rows affected (0.01 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql> SELECT DoctorID, DoctorName, ConsultationFee
+    -> FROM Doctors
+    -> WHERE DoctorID = 107;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER NormalizeDoctorStatus
+    -> BEFORE UPDATE ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF LOWER(NEW.Status) = 'active' THEN
+    ->         SET NEW.Status = 'Active';
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> UPDATE Doctors
+    -> SET Status = 'active'
+    -> WHERE DoctorID = 107;
+Query OK, 0 rows affected (0.01 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql>
+mysql> SELECT DoctorID, DoctorName, Status
+    -> FROM Doctors
+    -> WHERE DoctorID = 107;
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER AuditDepartmentChange
+    -> AFTER UPDATE ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF NOT (OLD.Department <=> NEW.Department) THEN
+    ->         INSERT INTO Doctor_Audit
+    ->             (DoctorID, ActionType, OldDepartment, NewDepartment)
+    ->         VALUES
+    ->             (NEW.DoctorID, 'DEPARTMENT UPDATE',
+    ->              OLD.Department, NEW.Department);
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> UPDATE Doctors
+    -> SET Department = 'Neurology'
+    -> WHERE DoctorID = 107;
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 0  Changed: 0  Warnings: 0
+
+mysql>
+mysql> SELECT *
+    -> FROM Doctor_Audit
+    -> WHERE DoctorID = 107
+    ->   AND ActionType = 'DEPARTMENT UPDATE';
+Empty set (0.00 sec)
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE TRIGGER ValidateDoctorName
+    -> BEFORE INSERT ON Doctors
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     IF NEW.DoctorName IS NULL
+    ->        OR TRIM(NEW.DoctorName) = '' THEN
+    ->
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'DoctorName cannot be empty';
+    ->     END IF;
+    -> END //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> INSERT INTO Doctors
+    ->     (DoctorID, DoctorName, Department, ConsultationFee, Status)
+    -> VALUES
+    ->     (110, '', 'Cardiology', 1200, 'Active');
+ERROR 1644 (45000): DoctorName cannot be empty
+mysql> SELECT *
+    -> FROM Doctors
+    -> WHERE DoctorID = 110;
+Empty set (0.00 sec)
